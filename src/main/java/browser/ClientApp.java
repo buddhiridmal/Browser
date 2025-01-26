@@ -1,8 +1,6 @@
 package browser;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.Socket;
 
 public class ClientApp  {
@@ -32,5 +30,19 @@ public class ClientApp  {
             }
 
         }).start();
+
+        OutputStream os = socket.getOutputStream();
+        BufferedOutputStream bos = new BufferedOutputStream(os);
+        String httpRequest = """
+                GET / HTTP/1.1
+                Host: google.lk
+                User-Agent: browser/1.0.0
+                Connection: close
+                
+                """;
+        bos.write(httpRequest.getBytes());
+        bos.flush();
+
+
 
     }}
