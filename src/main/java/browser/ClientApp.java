@@ -35,7 +35,7 @@ public class ClientApp  {
         BufferedOutputStream bos = new BufferedOutputStream(os);
         String httpRequest = """
                 GET / HTTP/1.1
-                Host: google.lk
+                Host: gogle.lk
                 User-Agent: browser/1.0.0
                 Connection: close
                 
