@@ -14,6 +14,19 @@ public class ClientApp  {
             try {
                 InputStream is = socket.getInputStream();
                 BufferedInputStream bis = new BufferedInputStream(is);
+
+                while (true){
+                    byte[] buffer = new byte[1024];
+                    int read = bis.read(buffer);
+                    if (read == -1) break;
+                    System.out.print(new String(buffer, 0, read));
+                }
+                System.out.println("server stopped responding");
+
+
+
+
+
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
