@@ -5,9 +5,7 @@ import javafx.event.ActionEvent;
 import javafx.scene.control.TextField;
 import javafx.scene.web.WebView;
 
-import java.io.BufferedOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.Socket;
 
 public class MainSceneController {
@@ -43,7 +41,7 @@ public class MainSceneController {
         String url4="lcc://test";
         String url5="lcc://test:7580/abc";
 
-        url=url5;
+       // url=url5;
         String noProtocol;
 
         String protocol = null;
@@ -115,7 +113,7 @@ public class MainSceneController {
         String request = """
                 GET %S HTTP/1.1
                 Host: %s
-                User-Agent: dep-browser/1
+                User-Agent: Browser/1
                 Connection: close
                 Accept: text/html
                 
@@ -123,6 +121,26 @@ public class MainSceneController {
 
         bos.write(request.getBytes());
         bos.flush();
+
+        new Thread(()->{
+            try {
+                InputStream is = socket.getInputStream();
+                BufferedInputStream bis = new BufferedInputStream(is);
+
+                while (true) {
+                    byte[] buffer = new byte[1024];
+                    int read = bis.read(buffer);
+                    if (read == -1) break;
+                    System.out.print(new String(buffer, 0, read));
+                }
+                System.out.println("server stopped responding");
+
+            }catch (Exception e){
+            }
+
+        }).start();
+
+
 
     }
 
