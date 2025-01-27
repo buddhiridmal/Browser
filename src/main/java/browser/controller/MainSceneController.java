@@ -171,7 +171,11 @@ public class MainSceneController {
 
                 }
                 System.out.println("Content Type --------------->: " + contentType);
-
+                String content = "";
+                while ((line = bsr.readLine()) != null) {
+                    content += (line + "\n");
+                }
+                System.out.println("Content" + "\n"+ content);
 
 
 
