@@ -112,6 +112,17 @@ public class MainSceneController {
         OutputStream os = socket.getOutputStream();
         BufferedOutputStream bos = new BufferedOutputStream(os);
 
+        String request = """
+                GET %S HTTP/1.1
+                Host: %s
+                User-Agent: dep-browser/1
+                Connection: close
+                Accept: text/html
+                
+                """.formatted(path, host);
+
+        bos.write(request.getBytes());
+        bos.flush();
 
     }
 
