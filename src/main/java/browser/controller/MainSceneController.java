@@ -125,6 +125,7 @@ public class MainSceneController {
 
         new Thread(()->{
             try {
+                String contentType = null;
 
                 /*InputStream is = socket.getInputStream();
                 BufferedInputStream bis = new BufferedInputStream(is);
@@ -148,10 +149,20 @@ public class MainSceneController {
                 System.out.println("--------------------------------------------");
                 System.out.println("statusCode : " + statusCode);
 
+                boolean redirection = statusCode >= 300 && statusCode < 400;
+                String line;
+                while ((line = bsr.readLine()) != null && !line.isBlank()) {
+                    String header = line.split(":")[0].strip();
+                    String value = line.substring(line.indexOf(":") + 1);
+                    System.out.println("***********************************");
+                    System.out.println(header);
+                    System.out.println(value);
+                }
 
 
 
-            }catch (Exception e){
+
+                }catch (Exception e){
             }
 
         }).start();
