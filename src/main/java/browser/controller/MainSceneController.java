@@ -157,12 +157,25 @@ public class MainSceneController {
                     System.out.println("***********************************");
                     System.out.println(header);
                     System.out.println(value);
+
+                    if (redirection) {
+                        if (!header.equalsIgnoreCase("Location")) continue;
+                        System.out.println("Redirection" + value);
+                        Platform.runLater(() -> txtAddress.setText(value));
+                        loadWebPage(value);
+                        return;
+                    } else {
+                        if (!header.equalsIgnoreCase("content-type")) continue;
+                        contentType = value;
+                    }
+
                 }
+                System.out.println("Content Type --------------->: " + contentType);
 
 
 
 
-                }catch (Exception e){
+            }catch (Exception e){
             }
 
         }).start();
