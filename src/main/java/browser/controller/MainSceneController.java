@@ -2,6 +2,7 @@ package browser.controller;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
+import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.web.WebView;
 
@@ -11,6 +12,8 @@ import java.net.Socket;
 public class MainSceneController {
     public WebView wbDisplay;
     public TextField txtAddress;
+    public Button btnLoad;
+    String content;
 
     public void initialize() throws IOException {
         txtAddress.setText("http://www.google.com");
@@ -154,9 +157,9 @@ public class MainSceneController {
                 while ((line = bsr.readLine()) != null && !line.isBlank()) {
                     String header = line.split(":")[0].strip();
                     String value = line.substring(line.indexOf(":") + 1);
-                    System.out.println("***********************************");
-                    System.out.println(header);
-                    System.out.println(value);
+                    System.out.println(".................................................................");
+                    System.out.println(header + " : " + value);
+
 
                     if (redirection) {
                         if (!header.equalsIgnoreCase("Location")) continue;
@@ -171,7 +174,7 @@ public class MainSceneController {
 
                 }
                 System.out.println("Content Type --------------->: " + contentType);
-                String content = "";
+                content = "";
                 while ((line = bsr.readLine()) != null) {
                     content += (line + "\n");
                 }
@@ -189,4 +192,7 @@ public class MainSceneController {
     }
 
 
+    public void btnLoadOnAction(ActionEvent actionEvent) {
+        wbDisplay.getEngine().loadContent(content, "text/html");
+    }
 }
