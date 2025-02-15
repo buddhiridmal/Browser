@@ -4,7 +4,9 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.web.WebView;
+import javafx.stage.Stage;
 
 import java.io.*;
 import java.net.Socket;
@@ -13,9 +15,16 @@ public class MainSceneController {
     public WebView wbDisplay;
     public TextField txtAddress;
     public Button btnLoad;
+    public AnchorPane root;
     String content;
 
     public void initialize() throws IOException {
+        wbDisplay.getEngine().locationProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue == null || newValue.isBlank()) return;
+            ((Stage)(root.getScene().getWindow())).setTitle("Browser - " + wbDisplay.getEngine().getTitle());
+            txtAddress.setText(wbDisplay.getEngine().getLocation());
+        });
+
         txtAddress.setText("http://www.google.com");
         loadWebPage(txtAddress.getText());
         txtAddress.focusedProperty().addListener((observable, oldValue, newValue) -> {
@@ -33,7 +42,7 @@ public class MainSceneController {
     public void txtAddressOnAction(ActionEvent actionEvent) throws IOException {
         String url = txtAddress.getText();
         if (url.isBlank()) return;
-
+        loadWebPage(txtAddress.getText());
         loadWebPage(url);
     }
 
@@ -149,6 +158,7 @@ public class MainSceneController {
                 // Read the status line
                 String statusLine = bsr.readLine();
                 int statusCode = Integer.parseInt(statusLine.split(" ")[1]);
+                String sts = statusLine.split(" ")[0];
                 System.out.println("--------------------------------------------");
                 System.out.println("statusCode : " + statusCode);
 
