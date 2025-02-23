@@ -11,6 +11,8 @@ import javafx.stage.Stage;
 import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MainSceneController {
     public WebView wbDisplay;
@@ -105,7 +107,7 @@ public class MainSceneController {
                     int statusCode = Integer.parseInt(statusLine.split(" ")[1]);
                     boolean redirection = statusCode >= 300 && statusCode < 400;
 
-                    // Let's read the request headers
+                    // Read the request headers
                     String line;
                     String contentType = null;
                     boolean chunked = false;
@@ -128,84 +130,42 @@ public class MainSceneController {
                         }
                     }
 
-        /*String request = """
-                GET %S HTTP/1.1
-                Host: %s
-                User-Agent: Browser/1
-                Connection: close
-                Accept: text/html
-                
-                """.formatted(path, host);*/
 
 
-        System.out.println("*************************************************************************************");
-       // System.out.println(request);
-        System.out.println("*************************************************************************************");
-
-                   /* bsr.write(request.getBytes());
-                    bsr.flush();*/
-
-       
-
-                //boolean redirection = statusCode >= 300 && statusCode < 400;
-
-                    //String contentType = "";
-                    //while ((line = bsr.readLine()) != null && !line.isBlank()) {
-                    String header = line.split(":")[0].strip();
-                    //String value = line.substring(line.indexOf(":") + 1);
-                    //System.out.println(".................................................................");
-                    //System.out.println(header + " : " + value);
-                    /*if (redirection) {
-                        if (!header.equalsIgnoreCase("Location")) continue;
-                        System.out.println("Redirection" + value);
-                        Platform.runLater(() -> txtAddress.setText(value));
-                        loadWebPage(value);
-                        return;
-                    }*/
-
-                    if (redirection) {
-                        if (header.equalsIgnoreCase("Location")) {
-                            String redirectUrl = "";
-
-                            // Ensure the redirect URL has the correct protocol
-                            if (!redirectUrl.startsWith("http")) {
-                                //redirectUrl = protocol + "://" + host + (redirectUrl.startsWith("/") ? "" : "/") + redirectUrl;
-                            }
-
-                            System.out.println("Redirection detected: " + redirectUrl);
-
-                            String finalRedirectUrl = redirectUrl; // Required for lambda
-                            Platform.runLater(() -> {
-                                txtAddress.setText(finalRedirectUrl);
-                                try {
-                                    loadWebPage(finalRedirectUrl);
-                                } catch (IOException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            });
-
-                            return; // Exit the thread to avoid further processing
+                    if (contentType == null || !contentType.contains("text/html")) {
+                        displayError("Sorry, content type not supported");
+                    } else {
+                        if (chunked) bsr.readLine();    // Skip the chunk size
+                        StringBuilder sb = new StringBuilder();
+                        while ((line = bsr.readLine()) != null) {
+                            sb.append(line);
                         }
-                    }
+                        if (chunked) sb.deleteCharAt(sb.length() - 1); // Delete the chunk boundary
 
-                    else {
-                      //  if (!header.equalsIgnoreCase("content-type")) continue;
-                        //contentType = value;
-                    }
+                        // Fix the relative url issue with the base url
+                        if (!Pattern.compile("<head>.*<base .*</head>").matcher(sb).find()) {
+                            Matcher headMatcher = Pattern.compile("<head>").matcher(sb);
+                            if (headMatcher.find()) {
+                                sb.insert(headMatcher.end(), "<base href='%s'>".formatted(baseUrl));
+                            }
+                        }
 
-                System.out.println("Content Type --------------->: " + contentType);
-                content = "";
-                while ((line = bsr.readLine()) != null) {
-                    content += (line + "\n");
+                        // Set the title
+                        Matcher titleMatcher = Pattern.compile("<title>(.+)</title>", Pattern.CASE_INSENSITIVE).matcher(sb);
+                        if (titleMatcher.find()) {
+                            Platform.runLater(() -> {
+                                ((Stage) (root.getScene().getWindow())).setTitle("Browser - " + titleMatcher.group(1));
+                            });
+                        }
+
+
+                        Platform.runLater(() -> wbDisplay.getEngine().loadContent(sb.toString()));
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    displayError("Connection Failed");
                 }
-                System.out.println("Content" + "\n"+ content);
-            }catch (Exception e){
-                e.printStackTrace();
-            }
-
-
-
-        }).start();
+            }).start();
 
             // Send the client request
             String httpRequest = """
