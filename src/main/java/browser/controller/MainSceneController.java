@@ -88,12 +88,21 @@ public class MainSceneController {
             if (host.isBlank() || port == -1) throw new RuntimeException("Invalid URL");
             if (!(protocol.equals("http") || protocol.equals("https"))) throw new RuntimeException("Invalid protocol");
 
-            Socket socket;
-             socket = new Socket(host, port);
+            // Establish the connection
+            Socket socket = new Socket(host, port);
+            String baseUrl = protocol + "://" + host + ":" + port + "/";
 
-            OutputStream os = socket.getOutputStream();
+            // Read the server response
+            new Thread(() -> {
+                try {
+                    InputStream is = socket.getInputStream();
+                    InputStreamReader isr = new InputStreamReader(is);
+                    BufferedReader bsr = new BufferedReader(isr);
 
-            BufferedOutputStream bos = new BufferedOutputStream(os);
+                    //Read the status line
+                    String statusLine = bsr.readLine();
+                    int statusCode = Integer.parseInt(statusLine.split(" ")[1]);
+                    boolean redirection = statusCode >= 300 && statusCode < 400;
 
         String request = """
                 GET %S HTTP/1.1
@@ -109,39 +118,15 @@ public class MainSceneController {
         System.out.println(request);
         System.out.println("*************************************************************************************");
 
-        bos.write(request.getBytes());
-        bos.flush();
+                   /* bsr.write(request.getBytes());
+                    bsr.flush();*/
 
-        new Thread(()->{
-            try {
-                String contentType = null;
+       
 
-                /*InputStream is = socket.getInputStream();
-                BufferedInputStream bis = new BufferedInputStream(is);
-
-                while (true){
-                    byte[] buffer = new byte[1024];
-                    int read = bis.read(buffer);
-                    if (read == -1) break;
-                    System.out.print(new String(buffer, 0, read));
-                }
-                System.out.println("server stopped responding");*/
-
-
-              InputStream is = socket.getInputStream();
-                InputStreamReader isr = new InputStreamReader(is);
-                BufferedReader bsr = new BufferedReader(isr);
-
-                // Read the status line
-                String statusLine = bsr.readLine();
-                int statusCode = Integer.parseInt(statusLine.split(" ")[1]);
-                String sts = statusLine.split(" ")[0];
-                System.out.println("---------------------777777777-----------------------");
-                System.out.println("statusCode : " + statusCode);
-
-                boolean redirection = statusCode >= 300 && statusCode < 400;
+                //boolean redirection = statusCode >= 300 && statusCode < 400;
                 String line;
-                while ((line = bsr.readLine()) != null && !line.isBlank()) {
+                    String contentType;
+                    while ((line = bsr.readLine()) != null && !line.isBlank()) {
                     String header = line.split(":")[0].strip();
                     String value = line.substring(line.indexOf(":") + 1);
                     System.out.println(".................................................................");
@@ -198,11 +183,25 @@ public class MainSceneController {
 
         }).start();
 
-    }
+    }}
 
 
     public void btnLoadOnAction(ActionEvent actionEvent) {
 
         wbDisplay.getEngine().loadContent(content, "text/html");
+    }
+
+
+    private void displayError(String message) {
+        Platform.runLater(() -> {
+            wbDisplay.getEngine().loadContent("""
+                    <!DOCTYPE html>
+                    <html>
+                    <body>
+                    <h1 style="text-align: center;">%s</h1>
+                    </body>
+                    </html>
+                    """.formatted(message));
+        });
     }
 }
