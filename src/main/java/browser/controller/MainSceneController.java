@@ -52,81 +52,48 @@ public class MainSceneController {
     }
 
     private void loadWebPage(String url) throws IOException {
-       /* String url1="google.lk";
-        String url2="www.google.lk/search?q=ijse";
-        String url3="jdbc:mysql://127.0.0.1:3306/dep13";
-        String url4="lcc://test";
-        String url5="lcc://test:7580/abc";*/
-
-       //url="ijse.lk";
-        String noProtocol;
-
-       /* String protocol = null;
+        int i = 0;
+        String protocol = null;
         String host = null;
-        int port = 0;
-        int pEndIndex=0;
-        int portStartIndex=0;
-        int portEndIndex=0;
-        boolean valid=true;
-        String path =null;*/
+        int port = -1;
+        String path = "/";
 
-        if (url.contains("://")){
-            pEndIndex=url.indexOf("://");
-            protocol=url.substring(0,pEndIndex);
-            pEndIndex+=3;
-        }else {
-            //pEndIndex=-3;
-            protocol="http";
-        }
-        noProtocol=url.substring(pEndIndex);
-        //System.out.println("After removing the protocol -> "+noProtocol);
-
-        if (protocol.equals("http")){
-            port=80;
-            if (noProtocol.contains("/")){
-                host=noProtocol.substring(0,noProtocol.indexOf("/"));
-                path=noProtocol.substring(noProtocol.indexOf("/")+1);
-            }else {host=noProtocol;
-                path="/";
-            }
-        } else if (protocol.equals("https")) {
-            port=443;
-            if (noProtocol.contains("/")){
-                host=noProtocol.substring(0,noProtocol.indexOf("/"));
-                path=noProtocol.substring(noProtocol.indexOf("/")+1);
-            }else {host=noProtocol;
-                path="/";
+        try {
+            // Identify the protocol
+            if ((i = url.indexOf("://")) != -1) {
+                protocol = url.substring(0, i);
             }
 
-        }else if (noProtocol.contains(":")){
-            portStartIndex=noProtocol.indexOf(":");
-            portEndIndex=noProtocol.indexOf("/");
-            port=Integer.parseInt(noProtocol.substring(portStartIndex+1,portEndIndex));
-            host=noProtocol.substring(0,noProtocol.indexOf(":"));
-            if (noProtocol.contains("/")) {
-                path = noProtocol.substring(noProtocol.indexOf("/") + 1);
-            }else path="/";
-        }else {
-            valid=false;
-        }
+            // Identify the host and port
+            int j = url.indexOf("/", protocol == null ? i = 0 : (i = i + 3));
+            host = (j != -1 ? url.substring(i, j) : url.substring(i));
 
-        //System.out.println(portStartIndex);
-        //System.out.println(portStartIndex);
+            if (protocol == null) protocol = "http";
 
-        if (valid){
-            System.out.println("protocol  ->  "+protocol);
-            //System.out.println("After removing the protocol -> "+noProtocol);
-            System.out.println("host -> "+host);
-            System.out.println("port -> "+port);
-            System.out.println("path -> "+path);
-            System.out.println("-----------------------------------------------------------------");
-        }else System.out.println("Invalid URL");
+            // Separate the host and port
+            if ((i = host.indexOf(":")) != -1) {
+                port = Integer.parseInt(host.substring(i + 1));
+                host = host.substring(0, i);
+            } else {
+                port = switch (protocol) {
+                    case "http" -> 80;
+                    case "https" -> 443;
+                    default -> -1;
+                };
+            }
 
-        Socket socket = new Socket(host, port);
-        System.out.println("Connected to " +socket.getRemoteSocketAddress());
+            // Identify the path + query string + fragment
+            if (j != -1 && j != url.length()) path = url.substring(j);
 
-        OutputStream os = socket.getOutputStream();
-        BufferedOutputStream bos = new BufferedOutputStream(os);
+            if (host.isBlank() || port == -1) throw new RuntimeException("Invalid URL");
+            if (!(protocol.equals("http") || protocol.equals("https"))) throw new RuntimeException("Invalid protocol");
+
+            Socket socket;
+             socket = new Socket(host, port);
+
+            OutputStream os = socket.getOutputStream();
+
+            BufferedOutputStream bos = new BufferedOutputStream(os);
 
         String request = """
                 GET %S HTTP/1.1
