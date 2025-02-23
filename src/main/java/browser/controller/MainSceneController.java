@@ -33,16 +33,11 @@ public class MainSceneController {
             ((Stage)(root.getScene().getWindow())).setTitle("Browser - " + wbDisplay.getEngine().getTitle());
             txtAddress.setText(wbDisplay.getEngine().getLocation());
         });
-
-        txtAddress.setText("http://www.google.com");      //http://www.
+        txtAddress.setText("http://google.com");
         loadWebPage(txtAddress.getText());
         txtAddress.focusedProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue) {
-                Platform.runLater(() -> txtAddress.selectAll());
-            }
+            if (newValue) Platform.runLater(txtAddress::selectAll);
         });
-
-
     }
 
 
@@ -52,7 +47,8 @@ public class MainSceneController {
         String url = txtAddress.getText();
         if (url.isBlank()) return;
         loadWebPage(txtAddress.getText());
-        loadWebPage(url);
+        txtAddress.selectAll();
+
     }
 
     private void loadWebPage(String url) throws IOException {
