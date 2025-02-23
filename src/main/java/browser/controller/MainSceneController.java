@@ -105,6 +105,29 @@ public class MainSceneController {
                     int statusCode = Integer.parseInt(statusLine.split(" ")[1]);
                     boolean redirection = statusCode >= 300 && statusCode < 400;
 
+                    // Let's read the request headers
+                    String line;
+                    String contentType = null;
+                    boolean chunked = false;
+
+                    while ((line = bsr.readLine()) != null && !line.isBlank()) {
+                        String header = line.split(":")[0].strip();
+                        String value = line.substring(line.indexOf(":") + 1).strip();
+                        if (redirection) {
+                            if (!header.equalsIgnoreCase("Location")) continue;
+                            System.out.println("Redirection: " + value);
+                            Platform.runLater(() -> txtAddress.setText(value));
+                            loadWebPage(value);
+                            return;
+                        } else {
+                            if (header.equalsIgnoreCase("Content-Type")) {
+                                contentType = value;
+                            } else if (header.equalsIgnoreCase("Transfer-Encoding")) {
+                                chunked = value.equalsIgnoreCase("chunked");
+                            }
+                        }
+                    }
+
         /*String request = """
                 GET %S HTTP/1.1
                 Host: %s
@@ -125,13 +148,13 @@ public class MainSceneController {
        
 
                 //boolean redirection = statusCode >= 300 && statusCode < 400;
-                String line;
-                    String contentType = "";
-                    while ((line = bsr.readLine()) != null && !line.isBlank()) {
+
+                    //String contentType = "";
+                    //while ((line = bsr.readLine()) != null && !line.isBlank()) {
                     String header = line.split(":")[0].strip();
-                    String value = line.substring(line.indexOf(":") + 1);
-                    System.out.println(".................................................................");
-                    System.out.println(header + " : " + value);
+                    //String value = line.substring(line.indexOf(":") + 1);
+                    //System.out.println(".................................................................");
+                    //System.out.println(header + " : " + value);
                     /*if (redirection) {
                         if (!header.equalsIgnoreCase("Location")) continue;
                         System.out.println("Redirection" + value);
@@ -142,11 +165,11 @@ public class MainSceneController {
 
                     if (redirection) {
                         if (header.equalsIgnoreCase("Location")) {
-                            String redirectUrl = value.strip();
+                            String redirectUrl = "";
 
                             // Ensure the redirect URL has the correct protocol
                             if (!redirectUrl.startsWith("http")) {
-                                redirectUrl = protocol + "://" + host + (redirectUrl.startsWith("/") ? "" : "/") + redirectUrl;
+                                //redirectUrl = protocol + "://" + host + (redirectUrl.startsWith("/") ? "" : "/") + redirectUrl;
                             }
 
                             System.out.println("Redirection detected: " + redirectUrl);
@@ -166,10 +189,10 @@ public class MainSceneController {
                     }
 
                     else {
-                        if (!header.equalsIgnoreCase("content-type")) continue;
-                        contentType = value;
+                      //  if (!header.equalsIgnoreCase("content-type")) continue;
+                        //contentType = value;
                     }
-                }
+
                 System.out.println("Content Type --------------->: " + contentType);
                 content = "";
                 while ((line = bsr.readLine()) != null) {
@@ -203,10 +226,7 @@ public class MainSceneController {
     }
 
 
-    public void btnLoadOnAction(ActionEvent actionEvent) {
 
-        wbDisplay.getEngine().loadContent(content, "text/html");
-    }
 
 
     private void displayError(String message) {
