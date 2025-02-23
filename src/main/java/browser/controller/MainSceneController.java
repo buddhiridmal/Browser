@@ -17,6 +17,15 @@ public class MainSceneController {
     public Button btnLoad;
     public AnchorPane root;
     String content;
+    String protocol = null;
+    String host = null;
+    int port = 0;
+    int pEndIndex=0;
+    int portStartIndex=0;
+    int portEndIndex=0;
+    boolean valid=true;
+    String path =null;
+
 
     public void initialize() throws IOException {
         wbDisplay.getEngine().locationProperty().addListener((observable, oldValue, newValue) -> {
@@ -25,7 +34,7 @@ public class MainSceneController {
             txtAddress.setText(wbDisplay.getEngine().getLocation());
         });
 
-        txtAddress.setText("http://www.google.com");
+        txtAddress.setText("http://www.google.com");      //http://www.
         loadWebPage(txtAddress.getText());
         txtAddress.focusedProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue) {
@@ -47,23 +56,23 @@ public class MainSceneController {
     }
 
     private void loadWebPage(String url) throws IOException {
-        String url1="google.lk";
+       /* String url1="google.lk";
         String url2="www.google.lk/search?q=ijse";
         String url3="jdbc:mysql://127.0.0.1:3306/dep13";
         String url4="lcc://test";
-        String url5="lcc://test:7580/abc";
+        String url5="lcc://test:7580/abc";*/
 
-       // url=url5;
+       //url="ijse.lk";
         String noProtocol;
 
-        String protocol = null;
+       /* String protocol = null;
         String host = null;
         int port = 0;
         int pEndIndex=0;
         int portStartIndex=0;
         int portEndIndex=0;
         boolean valid=true;
-        String path =null;
+        String path =null;*/
 
         if (url.contains("://")){
             pEndIndex=url.indexOf("://");
@@ -132,6 +141,11 @@ public class MainSceneController {
                 
                 """.formatted(path, host);
 
+
+        System.out.println("*************************************************************************************");
+        System.out.println(request);
+        System.out.println("*************************************************************************************");
+
         bos.write(request.getBytes());
         bos.flush();
 
@@ -159,7 +173,7 @@ public class MainSceneController {
                 String statusLine = bsr.readLine();
                 int statusCode = Integer.parseInt(statusLine.split(" ")[1]);
                 String sts = statusLine.split(" ")[0];
-                System.out.println("--------------------------------------------");
+                System.out.println("---------------------777777777-----------------------");
                 System.out.println("statusCode : " + statusCode);
 
                 boolean redirection = statusCode >= 300 && statusCode < 400;
@@ -169,19 +183,43 @@ public class MainSceneController {
                     String value = line.substring(line.indexOf(":") + 1);
                     System.out.println(".................................................................");
                     System.out.println(header + " : " + value);
-
-
-                    if (redirection) {
+                    /*if (redirection) {
                         if (!header.equalsIgnoreCase("Location")) continue;
                         System.out.println("Redirection" + value);
                         Platform.runLater(() -> txtAddress.setText(value));
                         loadWebPage(value);
                         return;
-                    } else {
+                    }*/
+
+                    if (redirection) {
+                        if (header.equalsIgnoreCase("Location")) {
+                            String redirectUrl = value.strip();
+
+                            // Ensure the redirect URL has the correct protocol
+                            if (!redirectUrl.startsWith("http")) {
+                                redirectUrl = protocol + "://" + host + (redirectUrl.startsWith("/") ? "" : "/") + redirectUrl;
+                            }
+
+                            System.out.println("Redirection detected: " + redirectUrl);
+
+                            String finalRedirectUrl = redirectUrl; // Required for lambda
+                            Platform.runLater(() -> {
+                                txtAddress.setText(finalRedirectUrl);
+                                try {
+                                    loadWebPage(finalRedirectUrl);
+                                } catch (IOException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            });
+
+                            return; // Exit the thread to avoid further processing
+                        }
+                    }
+
+                    else {
                         if (!header.equalsIgnoreCase("content-type")) continue;
                         contentType = value;
                     }
-
                 }
                 System.out.println("Content Type --------------->: " + contentType);
                 content = "";
@@ -189,20 +227,19 @@ public class MainSceneController {
                     content += (line + "\n");
                 }
                 System.out.println("Content" + "\n"+ content);
-
-
-
             }catch (Exception e){
+                e.printStackTrace();
             }
 
+
+
         }).start();
-
-
 
     }
 
 
     public void btnLoadOnAction(ActionEvent actionEvent) {
+
         wbDisplay.getEngine().loadContent(content, "text/html");
     }
 }
