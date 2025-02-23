@@ -10,6 +10,7 @@ import javafx.stage.Stage;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.UnknownHostException;
 
 public class MainSceneController {
     public WebView wbDisplay;
@@ -104,18 +105,18 @@ public class MainSceneController {
                     int statusCode = Integer.parseInt(statusLine.split(" ")[1]);
                     boolean redirection = statusCode >= 300 && statusCode < 400;
 
-        String request = """
+        /*String request = """
                 GET %S HTTP/1.1
                 Host: %s
                 User-Agent: Browser/1
                 Connection: close
                 Accept: text/html
                 
-                """.formatted(path, host);
+                """.formatted(path, host);*/
 
 
         System.out.println("*************************************************************************************");
-        System.out.println(request);
+       // System.out.println(request);
         System.out.println("*************************************************************************************");
 
                    /* bsr.write(request.getBytes());
@@ -125,7 +126,7 @@ public class MainSceneController {
 
                 //boolean redirection = statusCode >= 300 && statusCode < 400;
                 String line;
-                    String contentType;
+                    String contentType = "";
                     while ((line = bsr.readLine()) != null && !line.isBlank()) {
                     String header = line.split(":")[0].strip();
                     String value = line.substring(line.indexOf(":") + 1);
@@ -183,7 +184,23 @@ public class MainSceneController {
 
         }).start();
 
-    }}
+            // Send the client request
+            String httpRequest = """
+                    GET %s HTTP/1.1
+                    Host: %s
+                    User-Agent: Mozilla/5.0
+                    Connection: close
+                    Accept: text/html
+                    
+                    """.formatted(path, host);
+            socket.getOutputStream().write(httpRequest.getBytes());
+            socket.getOutputStream().flush();
+        } catch (RuntimeException | UnknownHostException e) {
+            displayError("400 Bad Request: Invalid URL");
+        } catch (IOException e) {
+            displayError("Connection Error");
+        }
+    }
 
 
     public void btnLoadOnAction(ActionEvent actionEvent) {
